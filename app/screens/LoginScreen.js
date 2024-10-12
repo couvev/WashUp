@@ -5,16 +5,33 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
+import { login } from "../services/authService";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Lógica de login aqui
-    console.log("E-mail:", email);
-    console.log("Senha:", password);
+  const handleLogin = async () => {
+    // Validação simples dos campos
+    if (email === "" || password === "") {
+      Alert.alert("Erro", "Preencha todos os campos");
+      return;
+    }
+
+    setIsLoading(true); // Mostra o indicador de carregamento
+    const response = await login(email, password); // Chama o serviço de login
+    setIsLoading(false); // Esconde o indicador de carregamento
+
+    if (response.status === "success") {
+      Alert.alert("Sucesso", "Login bem-sucedido!");
+      navigation.replace("Home"); // Redireciona para a tela Home
+    } else {
+      Alert.alert("Erro", response.message);
+    }
   };
 
   return (
@@ -41,8 +58,16 @@ export default function LoginScreen({ navigation }) {
         autoCapitalize="none"
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Entrar</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleLogin}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Entrar</Text>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("SignUpScreen")}>
